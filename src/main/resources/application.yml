@@ -13,8 +13,9 @@ spring:
         show_sql: true
         format_sql: ture
 
-logging.level:
-  org.hibernate.sql: debug
+#
+#logging.level:
+#  org.hibernate.sql: debug
 
 
 

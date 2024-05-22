@@ -1,4 +1,4 @@
-package jpabook.jpashop.service;
+package jpabook.jpashop.serivce;
 
 import jpabook.jpashop.domain.Item.Item;
 import jpabook.jpashop.repository.ItemRepository;
@@ -24,8 +24,8 @@ public class ItemService {
         return itemRepository.findAll();
     }
 
-    public Item findOne(Long id){
-        return itemRepository.findOne(id);
+    public Item findOne(Long itemId){
+        return itemRepository.findOne(itemId);
     }
-
 }
+
