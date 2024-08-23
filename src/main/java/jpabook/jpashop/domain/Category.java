@@ -1,5 +1,6 @@
 package jpabook.jpashop.domain;
 
+import jakarta.persistence.Entity;
 import jakarta.persistence.*;
 import jpabook.jpashop.domain.Item.Item;
 import lombok.Getter;
@@ -12,27 +13,21 @@ import java.util.List;
 @Getter @Setter
 public class Category {
 
-    @Id
-    @GeneratedValue
+    @Id @GeneratedValue
     @Column(name = "category_id")
     private Long id;
-
     private String name;
+
     @ManyToMany
     @JoinTable(name = "category_item",
-            joinColumns = @JoinColumn(name = "category_id"),
-            inverseJoinColumns = @JoinColumn(name = "item_id"))
+        joinColumns = @JoinColumn(name = "cateogry_id"),
+        inverseJoinColumns = @JoinColumn(name = "item_id"))
     private List<Item> items = new ArrayList<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "parent_id")
     private Category parent;
 
     @OneToMany(mappedBy = "parent")
     private List<Category> child = new ArrayList<>();
-
-    public void addChildCategory(Category child){
-        this.child.add(child);
-        child.setParent(this);
-    }
 }

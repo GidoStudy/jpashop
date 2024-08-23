@@ -5,11 +5,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-@Slf4j
+@Slf4j(topic = "home controller")
 public class HomeController {
 
     @RequestMapping("/")
-    public String home(){
+    public String Home() {
         log.info("home controller");
         return "home";
     }

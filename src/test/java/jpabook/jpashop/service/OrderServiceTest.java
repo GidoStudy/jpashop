@@ -1,14 +1,15 @@
-package jpabook.jpashop.serivce;
+package jpabook.jpashop.service;
 
 import jakarta.persistence.EntityManager;
-import jpabook.jpashop.Exception.NotEnoughStockException;
 import jpabook.jpashop.domain.Address;
 import jpabook.jpashop.domain.Item.Book;
 import jpabook.jpashop.domain.Item.Item;
 import jpabook.jpashop.domain.Member;
 import jpabook.jpashop.domain.Order;
 import jpabook.jpashop.domain.OrderStatus;
+import jpabook.jpashop.exception.NotEnoughStockException;
 import jpabook.jpashop.repository.OrderRepository;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,45 +19,61 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.*;
 
-@SpringBootTest
 @RunWith(SpringRunner.class)
+@SpringBootTest
 @Transactional
-public class OrderServiceTest {
+class OrderServiceTest {
 
     @Autowired
     EntityManager em;
     @Autowired
-    OrderRepository orderRepository;
-    @Autowired
     OrderService orderService;
+    @Autowired
+    OrderRepository orderRepository;
 
     @Test
     void 상품주문() throws Exception{
         //given
         Member member = createMember();
-        Book book = createBook("시골 JPA", 10000, 10);
-        //when
+
+        Item book = createBook("시골 JPA", 10000, 10);
+
         int orderCount = 2;
-        Long orderedId = orderService.order(member.getId(), book.getId(), orderCount);
-        em.flush();
+        //when
+        Long orderId = orderService.order(member.getId(), book.getId(), orderCount);
         //then
-        Order order = orderRepository.findOne(orderedId);
-        assertThat(OrderStatus.ORDER).isEqualTo(order.getStatus());
-        assertThat(1).isEqualTo(order.getOrderItems().size());
-        assertThat(book.getPrice() * orderCount).isEqualTo(order.getTotalPrice());
+        Order getOrder = orderRepository.findOne(orderId);
+        assertThat(getOrder.getStatus()).isEqualTo(OrderStatus.ORDER);
+        assertThat(1).isEqualTo(getOrder.getOrderItems().size());
+        assertThat( 10000 * orderCount).isEqualTo(getOrder.getTotalPrice());
         assertThat(8).isEqualTo(book.getStockQuantity());
     }
 
+    @Test
+    void 상품주문_재고수량초과() throws Exception{
+        //given
+        Member member = createMember();
+        Item book = createBook("시골 JPA", 10000, 10);
 
+        int orderCount = 11;
+        //when
+        NotEnoughStockException exception = Assertions.assertThrows(NotEnoughStockException.class, () -> {
+            orderService.order(member.getId(), book.getId(), orderCount);
+        });
+        //then
+        assertThat("need more stock").isEqualTo(exception.getMessage());
+
+    }
 
     @Test
     void 주문취소() throws Exception{
         //given
         Member member = createMember();
-        Book book = createBook("시골 JPA", 10000, 10);
+        Item book = createBook("시골 JPA", 10000, 10);
+
         int orderCount = 2;
-        //when
         Long orderId = orderService.order(member.getId(), book.getId(), orderCount);
+        //when
         orderService.cancelOrder(orderId);
         //then
         Order order = orderRepository.findOne(orderId);
@@ -64,22 +81,9 @@ public class OrderServiceTest {
         assertThat(book.getStockQuantity()).isEqualTo(10);
     }
 
-    @Test
-    void 재고수량초과() throws Exception{
-        //given
-        Member member = createMember();
-        Item item = createBook("시골 JPA", 10000, 10);
-        int orderCount = 11;
-        //when
-        em.flush();
-        assertThatExceptionOfType(NotEnoughStockException.class).isThrownBy(()->{
-            orderService.order(member.getId(), item.getId(), orderCount);
-        }).withMessage("need more stock");
-        //then
-    }
 
-    private Book createBook(String name, int price, int quantity) {
-        Book book = new Book();
+    private Item createBook(String name, int price, int quantity) {
+        Item book = new Book();
         book.setName(name);
         book.setPrice(price);
         book.setStockQuantity(quantity);
@@ -90,7 +94,7 @@ public class OrderServiceTest {
     private Member createMember() {
         Member member = new Member();
         member.setName("회원1");
-        member.setAddress(new Address("서울", "강가", "123-123"));
+        member.setAddress(new Address("서울", "강변", "123321"));
         em.persist(member);
         return member;
     }

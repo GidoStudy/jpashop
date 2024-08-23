@@ -17,9 +17,8 @@ public class JpashopApplication {
 
 	@Bean
 	Hibernate5JakartaModule hibernate5Module() {
-		Hibernate5JakartaModule hibernateModule = new Hibernate5JakartaModule();
-		// JSON 생성 시점에 LAZY 로딩으로 프록시 인것을 DB조회해서 다 가져와버린다
+        // JSON 생성 시점에 LAZY 로딩으로 프록시 인것을 DB조회해서 다 가져와버린다
 		//hibernateModule.configure(Hibernate5JakartaModule.Feature.FORCE_LAZY_LOADING, true);
-		return hibernateModule;
+		return new Hibernate5JakartaModule();
 	}
 }

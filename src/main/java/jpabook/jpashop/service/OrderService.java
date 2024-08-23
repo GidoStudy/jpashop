@@ -1,4 +1,4 @@
-package jpabook.jpashop.serivce;
+package jpabook.jpashop.service;
 
 import jpabook.jpashop.domain.Delivery;
 import jpabook.jpashop.domain.Item.Item;
@@ -17,7 +17,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class OrderService {
 
     private final OrderRepository orderRepository;
@@ -27,36 +27,38 @@ public class OrderService {
     /**
      * 주문
      */
-    @Transactional
-    public Long order(Long memberId, Long itemId, int count){
+
+    public Long order(Long memberId, Long itemId, int count) {
+        // 엔티티 조회
         Member member = memberRepository.findOne(memberId);
         Item item = itemRepository.findOne(itemId);
-        // 배송정보 생성
+        // 배송정보 설정
         Delivery delivery = new Delivery();
         delivery.setAddress(member.getAddress());
-        // 주문 상품 생성
-        OrderItem orderItem = OrderItem.createOrderItem(item, item.getPrice(), count);
-        // 주문 생성
+        
+        // 주문상품 생성
+        // 생성 메서드가 아닌 생성자로 orderItem 을 만드는 것을 방지하려면
+        // -> 생성자의 접근 제어자를 protected 로 설정
+        OrderItem orderItem = OrderItem.createOrderitem(item, item.getPrice(), count);
+        // 주문생성
         Order order = Order.createOrder(member, delivery, orderItem);
         // 주문 저장
         orderRepository.save(order);
         return order.getId();
     }
-    /**
-     * 취소
-     */
-    @Transactional
-    public void cancelOrder(Long orderId){
+
+    //취소
+    public void cancelOrder(Long orderId) {
         // 주문 엔티티 조회
         Order order = orderRepository.findOne(orderId);
         // 주문 취소
         order.cancel();
     }
 
-    /**
-     * 검색
-     */
-    public List<Order> findOrders(OrderSearch orderSearch){
-        return orderRepository.findAllByCriteria(orderSearch);
+    //검색
+    @Transactional(readOnly = true)
+    public List<Order> searchOrders(OrderSearch orderSearch) {
+        return orderRepository.findAllByString(orderSearch);
     }
+
 }
